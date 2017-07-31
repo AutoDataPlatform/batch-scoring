@@ -15,6 +15,7 @@ import six
 from datarobot_batch_scoring.consts import (Batch,
                                             REPORT_INTERVAL,
                                             ProgressQueueMsg)
+from datarobot_batch_scoring.detect import Detector
 from datarobot_batch_scoring.utils import get_rusage, SerializableDialect
 
 
@@ -407,9 +408,17 @@ def investigate_encoding_and_dialect(dataset, sep, ui, fast=False,
         else:
             sniffer = csv.Sniffer()
             dialect = sniffer.sniff(sample.decode(encoding), delimiters=sep)
+            ui.debug(sample.decode(encoding))
             ui.debug('investigate_encoding_and_dialect - seconds to detect '
                      'csv dialect: {}'.format(time() - t1))
-    except csv.Error:
+    except csv.Error as ex:
+        decoded_one = sample.decode(encoding)
+        detector = Detector()
+        delimiter = detector.detect(decoded_one)
+        if len(delimiter) == 1:
+            ui.debug("Detected delimiter as %s" % delimiter[0])
+
+        ui.fatal(ex)
         if len(sample) < 10:
             ui.fatal('Input file "%s" is less than 10 chars long '
                      'and this is the possible cause of a csv.Error.'
