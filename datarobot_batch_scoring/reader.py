@@ -392,6 +392,9 @@ def sniff_dialect(sample, encoding, sep, skip_dialect, ui):
             delimiter = delimiter[0]
             ui.info("Detected delimiter as %s" % delimiter)
 
+            if sep is not None and sep != delimiter:
+                raise csv.Error("Could not determine delimiter")
+
         sniffer = csv.Sniffer()
         dialect = sniffer.sniff(resampled, delimiters=delimiter)
 
