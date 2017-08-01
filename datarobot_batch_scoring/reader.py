@@ -396,8 +396,11 @@ def sniff_dialect(sample, encoding, sep, skip_dialect, ui):
             if sep is not None and sep != delimiter:
                 delimiter = sep
         else:
-            raise csv.Error("The csv module failed to detect the CSV dialect. "
-                            "Try giving hints with the --delimiter argument, E.g  --delimiter=','")
+            raise csv.Error(
+                "The csv module failed to detect the CSV dialect. "
+                "Try giving hints with the --delimiter argument, "
+                "E.g  --delimiter=','"
+            )
 
         sniffer = csv.Sniffer()
         dialect = sniffer.sniff(resampled, delimiters=delimiter)
