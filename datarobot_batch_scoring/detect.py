@@ -83,4 +83,9 @@ class Detector(object):
         squares = map(lambda frequency: (float(average) - frequency) ** 2,
                       frequencies)
 
-        return math.sqrt(sum(squares) / (lines_to_account - 1))
+        try:
+            deviation = math.sqrt(sum(squares) / (lines_to_account - 1))
+        except ZeroDivisionError:
+            deviation = -1
+
+        return deviation
