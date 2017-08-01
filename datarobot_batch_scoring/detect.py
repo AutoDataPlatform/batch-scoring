@@ -20,12 +20,15 @@ class Detector(object):
         self.frequency_table[char][lines] += 1
 
     def detect(self, sample):
-        lines_analyzed = self.get_sample(sample)
-        return self.analyze(lines_analyzed)
+        lines_analyzed, lines_content = self.get_sample(sample)
+        resampled = "".join(lines_content[:-1])
+        return self.analyze(lines_analyzed), resampled
 
     def get_sample(self, sample, sample_lines=20, quotechar='"'):
         enclosed = False
         actual_lines = 1
+        lines = []
+        single_line = ""
 
         # raise Exception("Sample size %d" % len(sample))
 
@@ -34,6 +37,7 @@ class Detector(object):
                 break
             prev = sample[idx-1] if idx else None
             next = sample[idx+1] if (idx + 1) < len(sample) else None
+            single_line += ch
 
             if ch == quotechar:
                 if enclosed and next != quotechar:
@@ -42,11 +46,13 @@ class Detector(object):
                     enclosed = True
             elif not enclosed and (ch == '\n' and prev != '\r' or ch == '\r'):
                 actual_lines += 1
+                lines.append(single_line)
+                single_line = ""
 
             elif not enclosed and not self.non_delimiter_re.match(ch):
                 self.increment(ch, actual_lines)
 
-        return actual_lines
+        return actual_lines, lines
 
     def analyze(self, lines_analyzed):
         candidates = []
