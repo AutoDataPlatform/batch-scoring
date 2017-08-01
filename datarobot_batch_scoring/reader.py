@@ -383,7 +383,7 @@ def sniff_dialect(sample, encoding, sep, skip_dialect, ui):
             dialect = sniffer.sniff(sample.decode(encoding), delimiters=sep)
             ui.debug('investigate_encoding_and_dialect - seconds to detect '
                      'csv dialect: {}'.format(time() - t1))
-    except csv.Error as ex:
+    except csv.Error:
         decoded_one = sample.decode(encoding)
         detector = Detector()
         delimiter, resampled = detector.detect(decoded_one)

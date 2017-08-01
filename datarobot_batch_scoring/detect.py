@@ -62,7 +62,6 @@ class Detector(object):
             if float(0.0) == deviation:
                 candidates.append(delim)
         return candidates
-            # freq struct {'': {0:0}}
 
     def mean(self, line_freq, lines_analyzed):
         """
