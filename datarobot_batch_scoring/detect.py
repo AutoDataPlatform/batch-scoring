@@ -3,6 +3,11 @@ import re
 
 
 class Detector(object):
+    """
+    Resample given data to use only full lines (w/o truncated).
+    Detect possible delimiter character based on it's frequency. Gracefully
+    handles multiline columns.
+    """
 
     frequency_table = None
     non_delimiter_re = re.compile('[\w]', re.UNICODE)
@@ -19,32 +24,36 @@ class Detector(object):
 
         self.frequency_table[char][lines] += 1
 
-    def detect(self, sample):
-        lines_analyzed, lines_content = self.get_sample(sample)
+    def detect(self, sample, quotechar='"'):
+        lines_analyzed, lines_content = self.get_sample(sample,
+                                                        quotechar=quotechar)
         resampled = "".join(lines_content[:-1])
         return self.analyze(lines_analyzed), resampled
 
     def get_sample(self, sample, sample_lines=20, quotechar='"'):
+        """
+        Given actual sample method extracts complete lines and fills delimiter
+        candidates table with frequencies of occurrences.
+        """
         enclosed = False
         actual_lines = 1
         lines = []
         single_line = ""
 
-        # raise Exception("Sample size %d" % len(sample))
-
         for idx, ch in enumerate(sample):
             if actual_lines >= sample_lines:
                 break
-            prev = sample[idx-1] if idx else None
-            next = sample[idx+1] if (idx + 1) < len(sample) else None
+            prev_ch = sample[idx-1] if idx else None
+            next_ch = sample[idx+1] if (idx + 1) < len(sample) else None
             single_line += ch
 
             if ch == quotechar:
-                if enclosed and next != quotechar:
+                if enclosed and next_ch != quotechar:
                     enclosed = False
                 elif not enclosed:
                     enclosed = True
-            elif not enclosed and (ch == '\n' and prev != '\r' or ch == '\r'):
+            elif not enclosed and \
+                    (ch == '\n' and prev_ch != '\r' or ch == '\r'):
                 actual_lines += 1
                 lines.append(single_line)
                 single_line = ""
@@ -56,7 +65,7 @@ class Detector(object):
 
     def analyze(self, lines_analyzed):
         candidates = []
-        for delim, freq in list(self.frequency_table.items()):
+        for delim, freq in self.frequency_table.items():
             deviation = self.deviation(freq, lines_analyzed)
 
             if float(0.0) == deviation:
@@ -64,7 +73,7 @@ class Detector(object):
         return candidates
 
     def mean(self, line_freq, lines_analyzed):
-        """
+        """ Calculates mean frequency of potential delimiters occurrences
 
         :param line_freq: dict[int]int
         :param lines_analyzed: int
