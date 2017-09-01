@@ -49,7 +49,7 @@ def parse_args(argv, standalone=False):
         'prompt': None,
         'out': 'out.csv',
         'create_api_token': False,
-        'timeout': 30,
+        'timeout': None,
         'n_samples': False,
         'n_concurrent': 4,
         'n_retry': 3,
