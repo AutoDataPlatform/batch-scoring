@@ -49,7 +49,7 @@ def parse_args(argv, standalone=False):
         'prompt': None,
         'out': 'out.csv',
         'create_api_token': False,
-        'timeout': -1,
+        'timeout': None,
         'n_samples': False,
         'n_concurrent': 4,
         'n_retry': 3,
@@ -262,8 +262,8 @@ def parse_generic_options(parsed_args):
     resume = parsed_args.get('resume')
     compression = parsed_args['compress']
     out_file = parsed_args['out']
-    timeout = int(parsed_args['timeout'])
-    timeout = None if timeout == -1 else timeout
+    timeout = parsed_args['timeout']
+    timeout = None if timeout is None else int(timeout)
     fast_mode = parsed_args['fast']
     encoding = parsed_args['encoding']
     skip_dialect = parsed_args['skip_dialect']
