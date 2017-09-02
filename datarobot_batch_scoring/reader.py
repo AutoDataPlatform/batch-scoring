@@ -7,10 +7,11 @@ import os
 import signal
 import sys
 from itertools import chain
-from six.moves.queue import Full
 from time import time
 import chardet
+
 import six
+from six.moves.queue import Full
 
 from datarobot_batch_scoring.consts import (Batch,
                                             REPORT_INTERVAL,
@@ -189,14 +190,14 @@ class BatchGenerator(object):
     """
 
     def __init__(self, dataset, n_samples, n_retry, delimiter, ui,
-                 fast_mode, encoding, already_processed_batches=set()):
+                 fast_mode, encoding, already_processed_batches=None):
         self.dataset = dataset
         self.chunksize = n_samples
         self.rty_cnt = n_retry
         self._ui = ui
         self.fast_mode = fast_mode
         self.encoding = encoding
-        self.already_processed_batches = already_processed_batches
+        self.already_processed_batches = already_processed_batches or set()
         self.n_read = 0
         self.n_skipped = 0
 
@@ -300,12 +301,14 @@ class Shovel(object):
 
                 if time() - last_report > REPORT_INTERVAL:
                     self.progress_queue.put((
-                        ProgressQueueMsg.SHOVEL_PROGRESS, {
-                                     "produced": n,
-                                     "read": batch_generator.n_read,
-                                     "skipped": batch_generator.n_skipped,
-                                     "rusage": get_rusage()
-                                 }))
+                        ProgressQueueMsg.SHOVEL_PROGRESS,
+                        {
+                            "produced": n,
+                            "read": batch_generator.n_read,
+                            "skipped": batch_generator.n_skipped,
+                            "rusage": get_rusage()
+                        }
+                    ))
                     last_report = time()
 
                 self.shovel_status.value = b"R"
@@ -313,39 +316,45 @@ class Shovel(object):
             self.shovel_status.value = b"D"
             _ui.info('shoveling complete | total time elapsed {}s'
                      ''.format(time() - t2))
-            self.progress_queue.put((ProgressQueueMsg.SHOVEL_DONE,
-                                     {
-                                         "produced": n,
-                                         "read": batch_generator.n_read,
-                                         "skipped": batch_generator.n_skipped,
-                                         "rusage": get_rusage()
-                                     }))
+            self.progress_queue.put((
+                ProgressQueueMsg.SHOVEL_DONE,
+                {
+                    "produced": n,
+                    "read": batch_generator.n_read,
+                    "skipped": batch_generator.n_skipped,
+                    "rusage": get_rusage()
+                }
+            ))
         except csv.Error as e:
             self.shovel_status.value = b"C"
-            self.progress_queue.put((ProgressQueueMsg.SHOVEL_CSV_ERROR,
-                                     {
-                                         "batch": batch._replace(data=[]),
-                                         "error": str(e),
-                                         "produced": n,
-                                         "read": batch_generator.n_read,
-                                         "skipped": batch_generator.n_skipped,
-                                         "rusage": get_rusage()
-                                     }))
+            self.progress_queue.put((
+                ProgressQueueMsg.SHOVEL_CSV_ERROR,
+                {
+                    "batch": batch._replace(data=[]),
+                    "error": str(e),
+                    "produced": n,
+                    "read": batch_generator.n_read,
+                    "skipped": batch_generator.n_skipped,
+                    "rusage": get_rusage()
+                }
+            ))
             raise
         except Exception as e:
             self.shovel_status.value = b"E"
-            self.progress_queue.put((ProgressQueueMsg.SHOVEL_ERROR,
-                                     {
-                                         "batch": batch._replace("data", []),
-                                         "error": str(e),
-                                         "produced": n,
-                                         "read": batch_generator.n_read,
-                                         "skipped": batch_generator.n_skipped,
-                                         "rusage": get_rusage()
-                                     }))
+            self.progress_queue.put((
+                ProgressQueueMsg.SHOVEL_ERROR,
+                {
+                    "batch": batch._replace("data", []),
+                    "error": str(e),
+                    "produced": n,
+                    "read": batch_generator.n_read,
+                    "skipped": batch_generator.n_skipped,
+                    "rusage": get_rusage()
+                }
+            ))
             raise
         finally:
-            if os.name is 'nt':
+            if os.name == 'nt':
                 _ui.close()
 
     def go(self):
@@ -481,8 +490,11 @@ def investigate_encoding_and_dialect(dataset, sep, ui, fast=False,
              ' {}'.format(encoding))
     values = ['delimiter', 'doublequote', 'escapechar', 'lineterminator',
               'quotechar', 'quoting', 'skipinitialspace', 'strict']
-    d_attr = ' '.join(['{}={} '.format(i, repr(getattr(dialect, i))) for i in
-                      values if hasattr(dialect, i)])
+    d_attr = ' '.join([
+        '{}={} '.format(i, repr(getattr(dialect, i)))
+        for i in values
+        if hasattr(dialect, i)
+    ])
     ui.debug('investigate_encoding_and_dialect - vars(dialect) - {}'
              ''.format(d_attr))
     return encoding

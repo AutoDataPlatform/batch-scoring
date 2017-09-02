@@ -3,12 +3,12 @@ from __future__ import print_function
 
 import csv
 import multiprocessing
+from multiprocessing.managers import SyncManager
 import os
 import platform
 import signal
 import sys
 import threading
-from multiprocessing.managers import SyncManager
 from time import time
 
 import requests
@@ -56,10 +56,7 @@ def format_usage(rusage):
 
 
 def my_os_cannot_handle_life_in_the_fast_lane():
-    if os.name == 'nt':
-        return True
-    else:
-        return False
+    return os.name == 'nt'
 
 
 def run_batch_predictions(base_url, base_headers, user, pwd,
@@ -241,24 +238,27 @@ def run_batch_predictions(base_url, base_headers, user, pwd,
             ctx.scoring_succeeded = True
             return
 
-        network = stack.enter_context(Network(concurrency=concurrent,
-                                              timeout=timeout,
-                                              ui=ui,
-                                              network_queue=network_queue,
-                                              network_deque=network_deque,
-                                              writer_queue=writer_queue,
-                                              progress_queue=progress_queue,
-                                              abort_flag=abort_flag,
-                                              network_status=network_status,
-                                              endpoint=endpoint,
-                                              headers=base_headers,
-                                              user=user,
-                                              api_token=api_token,
-                                              pred_name=pred_name,
-                                              fast_mode=fast_mode,
-                                              max_batch_size=max_batch_size,
-                                              compression=compression
-                                              ))
+        network = stack.enter_context(
+            Network(
+                concurrency=concurrent,
+                timeout=timeout,
+                ui=ui,
+                network_queue=network_queue,
+                network_deque=network_deque,
+                writer_queue=writer_queue,
+                progress_queue=progress_queue,
+                abort_flag=abort_flag,
+                network_status=network_status,
+                endpoint=endpoint,
+                headers=base_headers,
+                user=user,
+                api_token=api_token,
+                pred_name=pred_name,
+                fast_mode=fast_mode,
+                max_batch_size=max_batch_size,
+                compression=compression
+            )
+        )
 
         exit_code = None
 
@@ -422,13 +422,13 @@ def run_batch_predictions(base_url, base_headers, user, pwd,
                     if msg == ProgressQueueMsg.SHOVEL_CSV_ERROR:
                         shovel_done = "with csv format error"
                         ui.error("Error parsing CSV file after line {},"
-                                 " error: {}, aborting".format(
-                                    batch.id + batch.rows, error))
+                                 " error: {}, aborting"
+                                 .format(batch.id + batch.rows, error))
                     else:
                         shovel_done = "with error"
                         ui.error("Unexpected reader error after line {},"
-                                 " error: {}, aborting".format(
-                                    batch.id + batch.rows, error))
+                                 " error: {}, aborting"
+                                 .format(batch.id + batch.rows, error))
 
                     exit_code = 1
                     aborting_phase = 1
@@ -621,9 +621,7 @@ def run_batch_predictions(base_url, base_headers, user, pwd,
             ui.info('scoring complete | total time elapsed {}s'
                     .format(time() - t1))
 
-        total_done = 0
-        for _, batch_len in ctx.db["checkpoints"]:
-            total_done += batch_len
+        total_done = sum(batch_len for _, batch_len in ctx.db["checkpoints"])
 
         total_lost = 0
         for bucket in ("warnings", "errors"):
@@ -647,7 +645,7 @@ def run_batch_predictions(base_url, base_headers, user, pwd,
                         else:
                             ui.info("        {}".format(msg, suffix))
 
-        ui.info('==== Total stats ===='.format(bucket))
+        ui.info('==== Total stats ====')
         ui.info("done: {} lost: {}".format(total_done, total_lost))
         if exit_code is None and total_lost == 0:
             ctx.scoring_succeeded = True

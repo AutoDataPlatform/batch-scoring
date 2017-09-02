@@ -10,7 +10,7 @@ class Detector(object):
     """
 
     frequency_table = None
-    non_delimiter_re = re.compile('[\w]', re.UNICODE)
+    non_delimiter_re = re.compile(r'[\w]', re.UNICODE)
     buff_size = 1024 * 2048
 
     def __init__(self):

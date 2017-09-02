@@ -199,7 +199,7 @@ def parse_args(argv, standalone=False):
                         'valid encodings '
                         'https://docs.python.org/3/library/codecs.html'
                         '#standard-encodings')
-    csv_gr.add_argument('--skip_dialect',  action='store_true',
+    csv_gr.add_argument('--skip_dialect', action='store_true',
                         default=False, help='Tell the batch_scoring script '
                         'to skip csv dialect detection.')
     csv_gr.add_argument('--skip_row_id', action='store_true', default=False,

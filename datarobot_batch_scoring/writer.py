@@ -80,7 +80,7 @@ class RunContext(object):
                          fast_mode, encoding, skip_row_id, output_delimiter)
 
     def __enter__(self):
-        assert(not self.is_open)
+        assert not self.is_open
         self.is_open = True
         self._ui.debug('ENTER CALLED ON RUNCONTEXT')
         self.db = shelve.open(self.file_context.file_name, writeback=True)
@@ -135,7 +135,7 @@ class RunContext(object):
         self.save_error(batch, error, "warnings")
 
     def __getstate__(self):
-        assert(not self.is_open)
+        assert not self.is_open
         self.out_stream = None
         d = self.__dict__.copy()
         return d
@@ -290,10 +290,8 @@ class OldRunContext(RunContext):
                               .format(self.db['skip_row_id'],
                                       self.skip_row_id))
         if self.db['output_delimiter'] != self.output_delimiter:
-            raise ShelveError('output_delimiter mismatch: should be {}'
-                              ' but was {}'.format(
-                                    self.db['output_delimiter'],
-                                    self.output_delimiter))
+            raise ShelveError('output_delimiter mismatch: should be {} but was {}'
+                              .format(self.db['output_delimiter'], self.output_delimiter))
 
         if six.PY2:
             self.out_stream = open(self.out_file, 'ab')

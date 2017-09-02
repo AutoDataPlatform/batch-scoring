@@ -3,12 +3,12 @@ import getpass
 import io
 import logging
 import os
+from os import getcwd
+from os.path import expanduser, isfile, join as path_join
 import sys
 from collections import namedtuple
 from functools import partial
 from gzip import GzipFile
-from os import getcwd
-from os.path import expanduser, isfile, join as path_join
 
 import requests
 import six
@@ -129,10 +129,7 @@ class UI(object):
         logger.warning(msg)
 
     def error(self, msg):
-        if sys.exc_info()[0]:
-            exc_info = True
-        else:
-            exc_info = False
+        exc_info = bool(sys.exc_info()[0])
         if self.file_name_suffix != 'main':
             logger.error(msg, exc_info=exc_info)
         elif self.stdout:
@@ -144,19 +141,17 @@ class UI(object):
     def fatal(self, msg):
         exc_info = sys.exc_info()
         if self.file_name_suffix != 'main':
-            msg = ('{}\nIf you need assistance please send the log file/s:\n'
-                   '{}to support@datarobot.com.').format(
-                           msg, self.get_all_logfiles())
+            fmt = ('{}\nIf you need assistance please send the log file/s:\n'
+                   '{}to support@datarobot.com.')
+            msg = fmt.format(msg, self.get_all_logfiles())
             logger.error(msg, exc_info=exc_info)
         elif self.stdout:
             msg = ('{}\nIf you need assistance please send the output of this '
-                   'script to support@datarobot.com.').format(
-                   msg)
+                   'script to support@datarobot.com.').format(msg)
             logger.error(msg, exc_info=exc_info)
         else:
             msg = ('{}\nIf you need assistance please send the log file/s:\n'
-                   '{}to support@datarobot.com.').format(
-                           msg, self.get_all_logfiles())
+                   '{}to support@datarobot.com.').format(msg, self.get_all_logfiles())
             logger.error(msg)
             root_logger.error(msg, exc_info=exc_info)
         self.close()
@@ -173,8 +168,8 @@ class UI(object):
                 l.shutdown()
 
     def get_file_name(self, suffix):
-        return os.path.join(os.getcwd(), 'datarobot_batch_scoring_{}.log'
-                                         ''.format(suffix))
+        return os.path.join(os.getcwd(),
+                            'datarobot_batch_scoring_{}.log'.format(suffix))
 
     def get_all_logfiles(self):
         file_names = ''
