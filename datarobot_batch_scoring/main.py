@@ -262,7 +262,7 @@ def parse_generic_options(parsed_args):
     resume = parsed_args.get('resume')
     compression = parsed_args['compress']
     out_file = parsed_args['out']
-    timeout = parsed_args['timeout']
+    timeout = parsed_args.get('timeout')
     timeout = None if timeout is None else int(timeout)
     fast_mode = parsed_args['fast']
     encoding = parsed_args['encoding']
