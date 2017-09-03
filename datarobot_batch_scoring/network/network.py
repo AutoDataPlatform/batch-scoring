@@ -9,7 +9,8 @@ try:
     from functools import lru_cache
 except ImportError:
     # Python 2.7 compatible lru_cache implementation
-    # https://stackoverflow.com/questions/17119154/python-decorator-optional-argument
+    # https://stackoverflow.com/questions/17119154/
+    #    python-decorator-optional-argument
     def lru_cache(*setting_args, **setting_kwargs):
         cache = {}
         no_args = (
@@ -52,8 +53,10 @@ from datarobot_batch_scoring.utils import get_rusage
 
 from .base_network_worker import BaseNetworkWorker
 
-TIMEOUT_WARNING = """The server did not send any data in the allotted amount of time.
-You might want to decrease the "--n_concurrent" parameters or increase "--timeout" parameter."""
+TIMEOUT_WARNING = """\
+The server did not send any data in the allotted amount of time.
+You might want to decrease the "--n_concurrent" parameters
+or increase "--timeout" parameter."""
 
 logger = logging.getLogger(__name__)
 FakeResponse = collections.namedtuple('FakeResponse', 'status_code, text')
@@ -72,8 +75,8 @@ lock = threading.Lock()
 # There are several reasonable alternatives that are not helpful:
 # - putting a lock around the `session.send` call does not help because
 #   there is only one `.run` call
-# - using multiple `request.Session` objects (one per thread) eliminates
-#   access to thread-pooling
+# - using multiple `request.Session` objects (one per thread)
+#   eliminates access to thread-pooling
 #
 # The use of a cache is useful because it replaces the single lookup (there is
 # only one address we need resolved) with a read operation from then after.
@@ -94,9 +97,11 @@ class Network(BaseNetworkWorker):
     def _response_callback(self, r, batch=None, *args, **kw):
         try:
             if r.status_code == 200:
-                pickleable_resp = {'elapsed': r.elapsed.total_seconds(),
-                                   'text': r.text,
-                                   'headers': r.headers}
+                pickleable_resp = {
+                    'elapsed': r.elapsed.total_seconds(),
+                    'text': r.text,
+                    'headers': r.headers,
+                }
                 self.writer_queue.put((WriterQueueMsg.RESPONSE, {
                     "request": pickleable_resp,
                     "batch": batch

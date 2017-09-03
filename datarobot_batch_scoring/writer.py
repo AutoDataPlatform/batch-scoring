@@ -290,8 +290,12 @@ class OldRunContext(RunContext):
                               .format(self.db['skip_row_id'],
                                       self.skip_row_id))
         if self.db['output_delimiter'] != self.output_delimiter:
-            raise ShelveError('output_delimiter mismatch: should be {} but was {}'
-                              .format(self.db['output_delimiter'], self.output_delimiter))
+            fmt = 'output_delimiter mismatch: should be {} but was {}'
+            msg = fmt.format(
+                self.db['output_delimiter'],
+                self.output_delimiter
+            )
+            raise ShelveError(msg)
 
         if six.PY2:
             self.out_stream = open(self.out_file, 'ab')

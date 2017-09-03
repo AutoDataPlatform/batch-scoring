@@ -150,8 +150,10 @@ class UI(object):
                    'script to support@datarobot.com.').format(msg)
             logger.error(msg, exc_info=exc_info)
         else:
-            msg = ('{}\nIf you need assistance please send the log file/s:\n'
-                   '{}to support@datarobot.com.').format(msg, self.get_all_logfiles())
+            fmt = (
+                '{}\nIf you need assistance please send the log file/s:\n'
+                '{}to support@datarobot.com.')
+            msg = fmt.format(msg, self.get_all_logfiles())
             logger.error(msg)
             root_logger.error(msg, exc_info=exc_info)
         self.close()
