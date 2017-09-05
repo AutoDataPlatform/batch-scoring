@@ -170,10 +170,11 @@ class Network(BaseNetworkWorker):
             self.session.send(prepared, timeout=self._timeout)
         except Exception as exc:
             code = 400
-            is_timeout = isinstance(
-                exc,
-                (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout)
+            exc_tuple = (
+                requests.exceptions.ConnectionError,
+                requests.exceptions.ReadTimeout,
             )
+            is_timeout = isinstance(exc, exc_tuple)
             if is_timeout:
                 self.ui.warning(TIMEOUT_WARNING)
                 code = 499
