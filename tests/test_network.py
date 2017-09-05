@@ -1,5 +1,3 @@
-import textwrap
-
 import pytest
 
 from datarobot_batch_scoring.batch_scoring import run_batch_predictions
@@ -43,12 +41,7 @@ def test_request_client_timeout(live_server, tmpdir, ui):
     returned = out.read_text('utf-8')
     assert '' in returned, returned
     logs = read_logs()
-    assert textwrap.dedent("""The server did not send any data
-in the allotted amount of time.
-You might want to decrease the "--n_concurrent" parameters
-or
-increase "--timeout" parameter.
-""") in logs
+    assert "server did not send any data" in logs
 
 
 def test_request_pool_is_full(live_server, tmpdir, ui):
